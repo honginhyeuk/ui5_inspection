@@ -50,7 +50,6 @@ function createTooltip() {
 
   document.body.appendChild(tooltipEl);
 }
-
 function handleMouseOver(event) {
   if (!isInspectorActive) return;
 
@@ -59,16 +58,48 @@ function handleMouseOver(event) {
   const oControl = ui5ControlId ? sap.ui.getCore().byId(ui5ControlId) : null;
 
   if (oControl) {
-    const controlName = oControl.getMetadata().getName();
-    const modelInfo = oControl.getModel() ? JSON.stringify(oControl.getModel().getData(), null, 2) : "No model data";
-    const bindingContext = oControl.getBindingContext() ? oControl.getBindingContext().getPath() : "No binding context";
+    // Control Metadata
+    const controlName = oControl.getMetadata().getName(); // 컨트롤 이름 (예: sap.m.Button)
+    const controlId = oControl.getId(); // 컨트롤 ID
 
+    // Properties
+    const properties = oControl.getMetadata().getProperties(); // 모든 프로퍼티 정보
+    let propertyText = "";
+    for (let key in properties) {
+      if (properties.hasOwnProperty(key)) {
+        propertyText += `${key}: ${oControl.getProperty(key)}\n`; // 각 프로퍼티 값 추출
+      }
+    }
+
+    // Aggregations
+    const aggregations = oControl.getMetadata().getAggregations();
+    let aggregationText = "";
+    for (let key in aggregations) {
+      if (aggregations.hasOwnProperty(key)) {
+        const aggregation = oControl.getAggregation(key); // 어그리게이션 내용
+        aggregationText += `${key}: ${aggregation ? aggregation.length : 0} items\n`;
+      }
+    }
+
+    // Binding Info
+    const bindingContext = oControl.getBindingContext();
+    const modelName = bindingContext ? bindingContext.sModelName || "defaultModel" : "No model";
+    const bindingPath = bindingContext ? bindingContext.getPath() : "No binding path";
+
+    // Tooltip Content
     tooltipEl.textContent = `
       Control: ${controlName}
-      ID: ${ui5ControlId}
-      Model Data: ${modelInfo}
-      Binding Context: ${bindingContext}
+      ID: ${controlId}
+      Properties:
+      ${propertyText}
+      Aggregations:
+      ${aggregationText}
+      Binding:
+      Model: ${modelName}
+      Path: ${bindingPath}
     `;
+
+    // Show Tooltip
     tooltipEl.style.display = "block";
     tooltipEl.style.left = event.pageX + 15 + "px";
     tooltipEl.style.top = event.pageY + 15 + "px";
@@ -76,9 +107,36 @@ function handleMouseOver(event) {
     tooltipEl.style.display = "none";
   }
 }
-
 function handleMouseOut() {
   if (tooltipEl) {
     tooltipEl.style.display = "none";
   }
 }
+
+
+// function handleMouseOver(event) {
+//   if (!isInspectorActive) return;
+
+//   const domElement = event.target;
+//   const ui5ControlId = domElement.id;
+//   const oControl = ui5ControlId ? sap.ui.getCore().byId(ui5ControlId) : null;
+
+//   if (oControl) {
+//     const controlName = oControl.getMetadata().getName();
+//     const modelInfo = oControl.getModel() ? JSON.stringify(oControl.getModel().getData(), null, 2) : "No model data";
+//     const bindingContext = oControl.getBindingContext() ? oControl.getBindingContext().getPath() : "No binding context";
+
+//     tooltipEl.textContent = `
+//       Control: ${controlName}
+//       ID: ${ui5ControlId}
+//       Model Data: ${modelInfo}
+//       Binding Context: ${bindingContext}
+//     `;
+//     tooltipEl.style.display = "block";
+//     tooltipEl.style.left = event.pageX + 15 + "px";
+//     tooltipEl.style.top = event.pageY + 15 + "px";
+//   } else {
+//     tooltipEl.style.display = "none";
+//   }
+// }
+
